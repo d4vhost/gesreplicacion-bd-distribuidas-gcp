@@ -1,0 +1,77 @@
+# Escenario B – Replicación Snapshot en SQL Server (Localhost)
+
+## 🎯 Objetivo
+
+Implementar una replicación **snapshot** desde una base de datos `CentroMedicoDB` en la instancia principal (`D4VHOST`) hacia una base homónima en una instancia secundaria (`D4VHOST\INSTANCIA_R1`), utilizando SQL Server Management Studio.
+
+---
+
+## 🏗️ Infraestructura
+
+| Rol         | Servidor                | Base de datos      | Tipo de conexión |
+|-------------|--------------------------|---------------------|------------------|
+| Publicador  | `D4VHOST`               | CentroMedicoDB     | Snapshot         |
+| Suscriptor  | `D4VHOST\INSTANCIA_R1`  | CentroMedicoDB     | Localhost        |
+
+---
+
+## ⚙️ Pasos realizados
+
+### 1. Crear la base de datos `CentroMedicoDB` en ambas instancias
+
+> Incluye tablas como `Clientes`, `Medicos`, `CentrosMedicos`, etc.
+
+---
+
+### 2. Configurar el distribuidor (distribution)
+
+- Validar que exista la base `distribution`
+- Asociarla con el servidor publicador `D4VHOST`
+
+---
+
+### 3. Crear publicación Snapshot
+
+- Seleccionar `CentroMedicoDB` como base de publicación
+- Seleccionar las tablas a replicar: `Clientes`, `Medicos`, `CentrosMedicos`
+- Configurar seguridad del agente de snapshot
+- Activar la opción de generar snapshot inmediatamente
+
+---
+
+### 4. Crear la suscripción
+
+- Conectarse al suscriptor `D4VHOST\INSTANCIA_R1`
+- Seleccionar `CentroMedicoDB` como base destino
+- Elegir ejecución continua del agente
+- Configurar seguridad del agente de distribución
+- Inicializar inmediatamente
+
+---
+
+### 5. Verificar ejecución del Snapshot Agent
+
+- Confirmar que el snapshot se generó al 100 %
+- Asegurar que esté disponible para el suscriptor
+
+---
+
+### 6. Validar replicación
+
+- Insertar datos en la tabla `Clientes` desde `D4VHOST`
+- Confirmar que se reflejen automáticamente en `D4VHOST\INSTANCIA_R1`
+
+---
+
+## ✅ Resultado
+
+La replicación **snapshot** se estableció correctamente, permitiendo que los datos iniciales se distribuyan desde el publicador al suscriptor. Las modificaciones posteriores requieren nuevos snapshots.
+
+---
+
+## 🧩 Consideraciones
+
+- Snapshot replica todo el contenido en bloques, no en tiempo real.
+- Ideal para datos que no cambian con frecuencia.
+- La sincronización no es automática ante cada cambio, requiere regenerar snapshot.
+
