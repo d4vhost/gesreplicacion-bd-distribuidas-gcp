@@ -1,0 +1,36 @@
+# Escenario 2: Particionamiento horizontal y ProxySQL en MySQL (GCP)
+
+Este escenario implementa un entorno distribuido con MySQL en Google Cloud que incluye:
+- Replicación maestro-esclavo
+- Tabla particionada por fecha
+- ProxySQL para enrutamiento inteligente de lecturas y escrituras
+
+---
+
+## 🧱 Infraestructura
+
+- **Instancia Maestro**: MySQL en Debian, IP pública y privada habilitada
+- **Instancia Esclavo**: MySQL replicado desde maestro
+- **ProxySQL** instalado en el maestro (puerto 6033)
+
+---
+
+## ⚙️ Configuraciones aplicadas
+
+### 🔹 1. Particionamiento en MySQL
+
+Se creó la tabla `ConsultasParticionadas` con particionamiento por rango de fechas:
+
+```sql
+CREATE TABLE ConsultasParticionadas (
+  ConsultaID INT AUTO_INCREMENT PRIMARY KEY,
+  MedicoID INT,
+  ClienteID INT,
+  FechaConsulta DATE,
+  Diagnostico VARCHAR(255)
+)
+PARTITION BY RANGE (YEAR(FechaConsulta)) (
+  PARTITION p2023 VALUES LESS THAN (2024),
+  PARTITION p2024 VALUES LESS THAN (2025),
+  PARTITION pFuturo VALUES LESS THAN MAXVALUE
+);
