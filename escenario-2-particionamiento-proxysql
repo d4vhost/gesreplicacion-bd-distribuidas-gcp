@@ -34,3 +34,49 @@ PARTITION BY RANGE (YEAR(FechaConsulta)) (
   PARTITION p2024 VALUES LESS THAN (2025),
   PARTITION pFuturo VALUES LESS THAN MAXVALUE
 );
+
+
+🔸 2. Instalación y configuración de ProxySQL
+📥 Instalación
+wget https://github.com/sysown/proxysql/releases/download/v2.5.5/proxysql_2.5.5-debian11_amd64.deb
+sudo apt install ./proxysql_2.5.5-debian11_amd64.deb
+sudo systemctl start proxysql
+
+🔧 Configuración (consola admin: puerto 6032)
+-- Agregar backends
+INSERT INTO mysql_servers (hostgroup_id, hostname, port)
+VALUES (0, 'IP_MAESTRO', 3306),
+       (1, 'IP_ESCLAVO', 3306);
+
+-- Reglas de enrutamiento
+INSERT INTO mysql_query_rules (rule_id, match_pattern, destination_hostgroup, apply)
+VALUES 
+  (1, '^SELECT.*', 1, 1),
+  (2, '^INSERT|UPDATE|DELETE', 0, 1);
+
+-- Aplicar y guardar
+LOAD MYSQL SERVERS TO RUNTIME;
+LOAD MYSQL QUERY RULES TO RUNTIME;
+SAVE MYSQL SERVERS TO DISK;
+SAVE MYSQL QUERY RULES TO DISK;
+
+🧪 Pruebas realizadas
+
+    Se conectó por ProxySQL (puerto 6033) y se insertaron datos:
+INSERT INTO ConsultasParticionadas (...) VALUES (...);
+    Se verificó que los SELECTs se ejecutan en el esclavo y las escrituras en el maestro.
+
+    Confirmada la replicación y el particionamiento funcional.
+
+🧩 Beneficio
+
+Esta arquitectura mejora el rendimiento y la disponibilidad del sistema, separando cargas de lectura y escritura, y organizando los datos eficientemente por fechas.
+📌 Credenciales de prueba
+
+    Usuario: admin
+
+    Contraseña: $User$Not$Found$404
+
+    IP Pública ProxySQL: 34.70.111.26
+
+    Puerto datos: 6033
